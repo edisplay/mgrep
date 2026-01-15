@@ -81,6 +81,23 @@ mgrep "where do we set up auth?"
 > session ends. You can see your current usage in the [Mixedbread
 > platform](https://www.platform.mixedbread.com/).
 
+> [!NOTE]
+> **Default Limits**: mgrep enforces default limits to ensure optimal performance:
+> - **Maximum file size**: 1MB per file
+> - **Maximum file count**: 1,000 files per directory
+>
+> These limits can be customized via CLI flags (`--max-file-size`, `--max-file-count`),
+> environment variables, or config files. See the [Configuration](#configuration) section for details.
+
+If you prefer to manually start the file watcher instead of relying on the agent's
+automatic background sync, you can run:
+
+```bash
+mgrep watch /path/to/your/project
+```
+
+This gives you explicit control over when indexing occurs and which directories are watched.
+
 `mgrep` supports assisted installation commands for many agents:
 - `mgrep install-claude-code` for Claude Code
 - `mgrep install-opencode` for OpenCode
@@ -226,10 +243,10 @@ mgrep can be configured via config files, environment variables, or CLI flags.
 Create a `.mgreprc.yaml` (or `.mgreprc.yml`) in your project root for local configuration, or `~/.config/mgrep/config.yaml` (or `config.yml`) for global configuration.
 
 ```yaml
-# Maximum file size in bytes to upload (default: 10MB)
+# Maximum file size in bytes to upload (default: 1MB)
 maxFileSize: 5242880
 
-# Maximum number of files to upload (default: 10000)
+# Maximum number of files to upload (default: 1000)
 maxFileCount: 5000
 ```
 
@@ -270,8 +287,8 @@ searches.
 
 ### Sync Options
 
-- `MGREP_MAX_FILE_SIZE`: Maximum file size in bytes to upload (default: `10485760` / 10MB)
-- `MGREP_MAX_FILE_COUNT`: Maximum number of files to upload (default: `10000`)
+- `MGREP_MAX_FILE_SIZE`: Maximum file size in bytes to upload (default: `1048576` / 1MB)
+- `MGREP_MAX_FILE_COUNT`: Maximum number of files to upload (default: `1000`)
 
 **Examples:**
 ```bash
