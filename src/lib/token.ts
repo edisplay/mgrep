@@ -134,15 +134,29 @@ interface TokenData {
 }
 
 /**
- * Checks if a token is expiring within 3 days
+ * Returns the expiration timestamp for a token in milliseconds
+ */
+function getTokenExpiresAt(token: TokenData & { created_at: string }): number {
+  const createdAt = new Date(token.created_at).getTime();
+  return createdAt + token.expires_in * 1000;
+}
+
+/**
+ * Checks if a token has already expired
+ */
+function isTokenExpired(token: TokenData & { created_at: string }): boolean {
+  return getTokenExpiresAt(token) <= Date.now();
+}
+
+/**
+ * Checks if a token is expiring within 3 days (but not yet expired)
  */
 function isTokenExpiringSoon(
   token: TokenData & { created_at: string },
 ): boolean {
-  const createdAt = new Date(token.created_at).getTime();
-  const expiresAt = createdAt + token.expires_in * 1000;
+  const timeRemaining = getTokenExpiresAt(token) - Date.now();
   const threeDaysInMs = 3 * 24 * 60 * 60 * 1000;
-  return expiresAt - Date.now() < threeDaysInMs;
+  return timeRemaining > 0 && timeRemaining < threeDaysInMs;
 }
 
 /**
@@ -170,7 +184,12 @@ export async function getStoredToken(): Promise<
     const data = await fs.readFile(TOKEN_FILE, "utf-8");
     const token = JSON.parse(data);
 
-    // Check if token is expiring within 3 days and refresh if needed
+    // Token is fully expired — force re-login
+    if (isTokenExpired(token)) {
+      return null;
+    }
+
+    // Token is expiring soon but still valid — attempt refresh
     if (isTokenExpiringSoon(token)) {
       try {
         const refreshedToken = await refreshToken(token.access_token);
